@@ -40,10 +40,13 @@ def iou_2d(bboxes1: np.ndarray, bboxes2: np.ndarray) -> np.ndarray:
             poly2_c4x = cx2 + ox2 * np.cos(theta2) + oy2 * np.sin(theta2)
             poly2_c4y = cy2 + ox2 * np.sin(theta2) - oy2 * np.cos(theta2)
 
+            print(m, n)
+            print("================================================")
             print([(poly1_c1x, poly1_c1y), (poly1_c2x, poly1_c2y),
                    (poly1_c3x, poly1_c3y), (poly1_c4x, poly1_c4y)])
             print([(poly2_c1x, poly2_c1y), (poly2_c2x, poly2_c2y),
                    (poly2_c3x, poly2_c3y), (poly2_c4x, poly2_c4y)])
+            print("================================================")
             poly1 = Polygon([(poly1_c1x, poly1_c1y), (poly1_c2x, poly1_c2y),
                              (poly1_c3x, poly1_c3y), (poly1_c4x, poly1_c4y)])
             poly2 = Polygon([(poly2_c1x, poly2_c1y), (poly2_c2x, poly2_c2y),
