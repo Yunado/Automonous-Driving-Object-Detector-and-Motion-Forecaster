@@ -99,7 +99,7 @@ class Tracker:
         """
         # TODO: Replace this stub code by invoking self.cost_matrix and hungarian_matching
         M, N = bboxes1.shape[0], bboxes2.shape[0]
-        cost_matrix = torch.ones((M, N))
+        cost_matrix = self.cost_matrix(bboxes1, bboxes2)
         assign_matrix = torch.zeros((M, N))
 
         return assign_matrix, cost_matrix
@@ -129,7 +129,7 @@ class Tracker:
             raise ValueError(f"Unknown association method {self.associate_method}")
 
         # TODO: Filter out matches with costs >= self.match_th
-
+        assign_matrix[cost_matrix >= self.match_th] = 0
         return assign_matrix, cost_matrix
 
     def track(self, bboxes_seq: List[Tensor], scores_seq: List[Tensor]):

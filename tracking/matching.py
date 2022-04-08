@@ -24,10 +24,10 @@ def greedy_matching(cost_matrix: np.ndarray) -> Tuple[List, List]:
     S1 = np.linspace(0, M-1, M).astype(int)
     S2 = np.linspace(0, N-1, N).astype(int)
     for _ in range(min(M, N)):
-        print("======================")
-        print(S1)
-        print(S2)
-        print("======================")
+        # print("======================")
+        # print(S1)
+        # print(S2)
+        # print("======================")
         ids = np.array(np.meshgrid(S1, S2)).T.reshape(-1, 2)    # S1xS2
         all_ids = np.where(cost_mat == np.amin(cost_mat[ids[:, 0], ids[:, 1]]))   # find all smallest element ind
         all_ids_lst = list(zip(all_ids[0], all_ids[1]))
@@ -62,6 +62,5 @@ def hungarian_matching(cost_matrix: np.ndarray) -> Tuple[List, List]:
         assignment corresponds to costs[0, 3], costs[1, 1] and costs[2, 0].
     """
     # TODO: Replace this stub code.
-    row_ids = []
-    col_ids = []
+    row_ids, col_ids = linear_sum_assignment(cost_matrix)
     return row_ids, col_ids

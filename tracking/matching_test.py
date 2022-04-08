@@ -32,6 +32,7 @@ def test_same_solution(helpers):
         cost_matrix
     )
     print(greedy_matrix)
+    print(hungarian_matrix)
     assert np.linalg.matrix_rank(greedy_matrix) == 3
     assert np.linalg.matrix_rank(hungarian_matrix) == 3
     assert np.sum(greedy_matrix) == 3
@@ -53,6 +54,7 @@ def test_diff_solution(helpers):
         cost_matrix
     )
     print(greedy_matrix)
+    print(hungarian_matrix)
     assert np.linalg.matrix_rank(greedy_matrix) == 3
     assert np.linalg.matrix_rank(hungarian_matrix) == 3
     assert np.sum(greedy_matrix) == 3
