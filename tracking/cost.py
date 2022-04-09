@@ -21,7 +21,7 @@ def iou_2d(bboxes1: np.ndarray, bboxes2: np.ndarray) -> np.ndarray:
         for n in range(N):
             box2 = bboxes2[n]
             cx2, cy2, l2, w2, theta2 = box2[0], box2[1], box2[2], box2[3], box2[4]
-            ox1, oy1, ox2, oy2 = w1/2, l1/2, w2/2, l2/2
+            ox1, oy1, ox2, oy2 = l1/2, w1/2, l2/2, w2/2
             poly1_c1x = cx1 + ox1 * np.cos(theta1) - oy1 * np.sin(theta1)
             poly1_c1y = cy1 + ox1 * np.sin(theta1) + oy1 * np.cos(theta1)
             poly1_c2x = cx1 - ox1 * np.cos(theta1) - oy1 * np.sin(theta1)
@@ -40,20 +40,13 @@ def iou_2d(bboxes1: np.ndarray, bboxes2: np.ndarray) -> np.ndarray:
             poly2_c4x = cx2 + ox2 * np.cos(theta2) + oy2 * np.sin(theta2)
             poly2_c4y = cy2 + ox2 * np.sin(theta2) - oy2 * np.cos(theta2)
 
-            print(m, n)
-            print("================================================")
-            print([(poly1_c1x, poly1_c1y), (poly1_c2x, poly1_c2y),
-                   (poly1_c3x, poly1_c3y), (poly1_c4x, poly1_c4y)])
-            print([(poly2_c1x, poly2_c1y), (poly2_c2x, poly2_c2y),
-                   (poly2_c3x, poly2_c3y), (poly2_c4x, poly2_c4y)])
-            print("================================================")
             poly1 = Polygon([(poly1_c1x, poly1_c1y), (poly1_c2x, poly1_c2y),
                              (poly1_c3x, poly1_c3y), (poly1_c4x, poly1_c4y)])
             poly2 = Polygon([(poly2_c1x, poly2_c1y), (poly2_c2x, poly2_c2y),
                              (poly2_c3x, poly2_c3y), (poly2_c4x, poly2_c4y)])
             poly_intersection = poly1.intersection(poly2).area
             poly_union = poly1.union(poly2).area
-            iou_mat[M-m-1, N-n-1] = poly_intersection/poly_union
+            iou_mat[m, n] = poly_intersection/poly_union
     print("this is iou mat")
     print(iou_mat)
     print("===============")
