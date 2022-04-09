@@ -25,14 +25,30 @@ def helpers():
     return Helpers
 
 
+def test_greedy(helpers):
+    """Some test"""
+    cost_matrix = np.array([[2, 14, 15, 7], [1, 2, 10, 15], [3, 2, 1, 10]])
+    greedy_matrix, greedy_cost, hungarian_matrix, hungarian_cost = helpers.match(
+        cost_matrix
+    )
+    assert np.linalg.matrix_rank(greedy_matrix) == 3
+    assert np.linalg.matrix_rank(hungarian_matrix) == 3
+    assert np.sum(greedy_matrix) == 3
+    assert np.sum(hungarian_matrix) == 3
+    exp_greedy = np.array([[0, 0, 0, 1], [1, 0, 0, 0], [0, 0, 1, 0]])
+    exp_hungarian = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]])
+    np.testing.assert_allclose(greedy_matrix, exp_greedy)
+    np.testing.assert_allclose(hungarian_matrix, exp_hungarian)
+    np.testing.assert_allclose(greedy_cost, 9.0)
+    np.testing.assert_allclose(hungarian_cost, 5.0)
+
+
 def test_same_solution(helpers):
     """Test example (greedy and hungarian have same solutions)"""
     cost_matrix = np.array([[15, 2, 3], [2, 7, 5], [5, 8, 3]])
     greedy_matrix, greedy_cost, hungarian_matrix, hungarian_cost = helpers.match(
         cost_matrix
     )
-    print(greedy_matrix)
-    print(hungarian_matrix)
     assert np.linalg.matrix_rank(greedy_matrix) == 3
     assert np.linalg.matrix_rank(hungarian_matrix) == 3
     assert np.sum(greedy_matrix) == 3
@@ -53,10 +69,14 @@ def test_diff_solution(helpers):
     greedy_matrix, greedy_cost, hungarian_matrix, hungarian_cost = helpers.match(
         cost_matrix
     )
-    print(greedy_matrix)
-    print(hungarian_matrix)
     assert np.linalg.matrix_rank(greedy_matrix) == 3
     assert np.linalg.matrix_rank(hungarian_matrix) == 3
     assert np.sum(greedy_matrix) == 3
     assert np.sum(hungarian_matrix) == 3
+    exp_greedy = np.array([[0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0]])
+    exp_hungarian = np.array([[0, 0, 0, 1], [0, 0, 1, 0], [0, 1, 0, 0]])
+    np.testing.assert_allclose(greedy_matrix, exp_greedy)
+    np.testing.assert_allclose(hungarian_matrix, exp_hungarian)
+    np.testing.assert_allclose(greedy_cost, 1.05)
+    np.testing.assert_allclose(hungarian_cost, 0.93)
     assert not np.isclose(greedy_cost, hungarian_cost)
