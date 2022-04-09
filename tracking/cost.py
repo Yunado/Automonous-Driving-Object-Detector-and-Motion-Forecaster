@@ -48,7 +48,7 @@ def iou_2d(bboxes1: np.ndarray, bboxes2: np.ndarray) -> np.ndarray:
             poly_intersection = poly1.intersection(poly2).area
             poly_union = poly1.union(poly2).area
             iou_mat[m, n] = poly_intersection/poly_union
-    print("this is iou mat")
-    print(iou_mat)
-    print("===============")
+    # print("this is iou mat")
+    # print(iou_mat)
+    # print("===============")
     return iou_mat

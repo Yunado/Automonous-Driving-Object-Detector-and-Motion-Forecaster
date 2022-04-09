@@ -115,6 +115,9 @@ def test_diff_gt_det():
     assert matching.num_misses_list == [0, 0, 1, 0]
 
     assert matching.compute_motp() == 1.0
+    print("===================")
+    print(matching.compute_mota())
+    print("===================")
     np.testing.assert_allclose(matching.compute_mota(), 0.2)
     np.testing.assert_allclose(
         np.array(matching.compute_det_tracked_metrics(tracklets_det)),
