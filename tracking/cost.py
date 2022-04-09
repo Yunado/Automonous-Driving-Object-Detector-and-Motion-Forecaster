@@ -18,10 +18,11 @@ def iou_2d(bboxes1: np.ndarray, bboxes2: np.ndarray) -> np.ndarray:
     for m in range(M):
         box1 = bboxes1[m]
         cx1, cy1, l1, w1, theta1 = box1[0], box1[1], box1[2], box1[3], box1[4]
+        ox1, oy1 = l1/2, w1/2
         for n in range(N):
             box2 = bboxes2[n]
             cx2, cy2, l2, w2, theta2 = box2[0], box2[1], box2[2], box2[3], box2[4]
-            ox1, oy1, ox2, oy2 = l1/2, w1/2, l2/2, w2/2
+            ox2, oy2 = l2/2, w2/2
             poly1_c1x = cx1 + ox1 * np.cos(theta1) - oy1 * np.sin(theta1)
             poly1_c1y = cy1 + ox1 * np.sin(theta1) + oy1 * np.cos(theta1)
             poly1_c2x = cx1 - ox1 * np.cos(theta1) - oy1 * np.sin(theta1)
