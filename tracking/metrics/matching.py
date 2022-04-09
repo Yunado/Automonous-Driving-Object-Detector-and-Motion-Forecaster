@@ -189,8 +189,12 @@ class Matching:
         sum_fpt = sum(self.num_false_positives_list)
         sum_mmet = sum(self.num_mismatches_list)
         sum_gt = 0
-        for i in self.matchings_list:
-            sum_gt += len(i)
+        for d in self.matchings_list:
+            object_actor = set(key for key in d)
+            hypothesis_actor = set(val for val in d.values())
+            sum_gt += len(object_actor.union(hypothesis_actor))
+        # for i in self.matchings_list:
+        #     sum_gt += len(i)
         return 1 - (sum_mt + sum_fpt + sum_mmet) / sum_gt
 
     def compute_gt_coverage_percentage(
