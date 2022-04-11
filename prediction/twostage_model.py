@@ -23,7 +23,7 @@ class PredictionModelConfig:
     num_label_timesteps: int = 10  # Number of timesteps to predict
 
 
-class PredictionModel(nn.Module):
+class TwoStagePredictionModel(nn.Module):
     """A basic object Prediction model."""
 
     def __init__(self, config: PredictionModelConfig) -> None:
@@ -31,7 +31,7 @@ class PredictionModel(nn.Module):
         
         self.config = config
         # TODO: Implement
-      
+
         self._encoder = nn.Sequential(
             nn.Linear(config.num_history_timesteps * 3, hidden_size),
             nn.ReLU(),
@@ -43,7 +43,14 @@ class PredictionModel(nn.Module):
         self._decoder = nn.Sequential(
             nn.Linear(latent_dimensions, hidden_size),
             nn.ReLU(),
-            nn.Linear(hidden_size, 2 * config.num_label_timesteps),
+            nn.Linear(hidden_size, 2),
+            nn.ReLU()
+        )
+
+        self._in_between = nn.Sequential(
+            # nn.Linear(latent_dimensions + 2, ),
+            # nn.ReLU(),
+            nn.Linear(latent_dimensions + 2, (self.config.num_label_timesteps - 1) * 2),
             nn.ReLU()
         )
 
@@ -131,11 +138,12 @@ class PredictionModel(nn.Module):
             A [batch_size x N x T_out x 2] tensor, representing the future trajectory
                 centroid outputs.
         """
-        # print(self.config.num_history_timesteps)
-        # x_batches = [x[:,:self.config.num_history_timesteps,:] for x in x_batches]
         x, batch_ids, original_x_pose = self._preprocess(x_batches)
         latent = self._encoder(x)
-        out = self._decoder(latent)
+        final = self._decoder(latent)
+        latent_cat_final = torch.cat([latent, final], dim=-1)
+        in_between = self._in_between(latent_cat_final)
+        out = torch.cat([in_between, final], dim=-1)
         out_batches = self._postprocess(out, batch_ids, original_x_pose)
         return out_batches
 

@@ -6,6 +6,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
+from prediction.config import num_timesteps
+
 import numpy as np
 import torch
 from pytorch3d.transforms import Transform3d
@@ -35,7 +37,7 @@ class PandasetPredConfig:
     basepath: str
     sequence_ids: Optional[Sequence[int]] = None
     classes_to_keep: Optional[Sequence[LabelClass]] = (LabelClass.CAR,)
-    num_pred_history_sweeps: int = 10
+    num_pred_history_sweeps: int = num_timesteps
     stride_pred_history_sweeps: int = 1
     num_pred_label_sweeps: int = 50
     stride_pred_label_sweeps: int = 5
