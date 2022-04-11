@@ -133,3 +133,5 @@ dmypy.json
 
 # Tracking results
 tracking/tracking_results/
+tracking/tracking_results_hungarian/
+tracking/tracking_results_greedy/
