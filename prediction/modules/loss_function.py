@@ -3,7 +3,7 @@ from typing import List, Tuple
 
 import torch
 from torch import Tensor, nn
-
+from prediction.config import *
 
 def compute_l1_loss(targets: Tensor, predictions: Tensor) -> Tensor:
     """Compute the mean absolute error (MAE)/L1 loss between `predictions` and `targets`.
@@ -22,8 +22,9 @@ def compute_l1_loss(targets: Tensor, predictions: Tensor) -> Tensor:
         A scalar MAE loss between `predictions` and `targets`
     """
     # TODO: Implement.
-    mask = torch.isnan(targets).float()
-    masked_target, masked_predictions = torch.where(mask == 0, targets, mask), torch.where(mask == 0, predictions, mask)
+    mask = ~torch.isnan(targets)
+    mask = mask.float()
+    masked_target, masked_predictions = torch.where(mask > 0, targets, mask), torch.where(mask > 0, predictions, mask)
     mae = torch.abs(masked_target - masked_predictions)
     l1_loss = torch.mean(mae)
     return l1_loss
@@ -81,7 +82,11 @@ class PredictionLossFunction(torch.nn.Module):
 
         # 3. Compute individual loss terms for l1
         l1_loss = compute_l1_loss(target_centroids, predicted_centroids)
-
+        if two_stage:
+            in_between = compute_l1_loss(target_centroids[...,:-1,:], predicted_centroids[...,:-1,:])
+            final = compute_l1_loss(target_centroids[...,-1,:], predicted_centroids[...,-1,:])
+            l1_loss = final * final_weight + in_between
+            
         # 4. Aggregate losses using the configured weights.
         total_loss = l1_loss * self._l1_loss_weight
 
