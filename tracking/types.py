@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from multiprocessing.dummy import current_process
 from typing import Dict, List, Union
 from uuid import UUID
 
@@ -31,6 +32,7 @@ class SingleTracklet:
         self.frame_ids = frame_ids
         self.bboxes_traj = bboxes_traj
         self.scores = scores
+        self.velocities = []
 
     @property
     def num_steps(self):
@@ -40,6 +42,7 @@ class SingleTracklet:
         self.frame_ids: List[int] = []
         self.bboxes_traj: List[torch.Tensor] = []
         self.scores: List[float] = []
+        self.scores: List[List[torch.Tensor]] = []
 
     def insert_new_observation(
         self, new_frame_id: int, new_bbox: torch.Tensor, new_score: float
@@ -47,6 +50,28 @@ class SingleTracklet:
         self.frame_ids.append(new_frame_id)
         self.bboxes_traj.append(new_bbox)
         self.scores.append(new_score)
+        self.velocities.append(self._calculate_current_velocity())
+    
+    def _calculate_current_velocity(self):
+        curr_box = self.bboxes_traj[-1]
+        prev_box = self.bboxes_traj[-2]
+        traj = (curr_box - prev_box)[:2]
+        time = self.frame_ids[-1] - self.frame_ids[-2]
+        traj = traj / time
+        traj = torch.where(torch.abs(traj) > 1, traj, torch.tensor([0]).float())
+        return traj
+    
+    def match_bbox(self, frame_id, bbox):
+        del_time = frame_id - self.frame_ids[-1]
+        if del_time == 0 or del_time > 10 or len(self.velocities) == 0:
+            return False
+        expected_location = del_time * self.velocities[-1] + self.bboxes_traj[-1][:2]
+        current_location = bbox[:2]
+        dist = (expected_location - current_location).pow(2).sum()
+        if dist < max(10, 5 * del_time ** 2):
+            # print(expected_location, current_location, self.velocities[-1], self.bboxes_traj[-1][:2], frame_id, self.frame_ids[-1])
+            return True
+        return False
 
 
 class Tracklets:

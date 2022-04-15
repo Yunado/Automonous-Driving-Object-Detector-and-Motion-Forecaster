@@ -145,6 +145,7 @@ class Tracker:
             None
         """
         # Track first frame by starting a tracklet for every bbox in the frame
+        
         cur_frame_track_ids = []
         for idx, bbox in enumerate(bboxes_seq[0]):
             if scores_seq is not None and scores_seq[0][idx] < self.min_score:
@@ -174,6 +175,25 @@ class Tracker:
                     self.tracks[track_id].insert_new_observation(
                         frame_id, cur_bboxes[j], cost_matrix[i, j]
                     )
+                    
                 else:
-                    track_id = self.create_new_tracklet(frame_id, cur_bboxes[j], 0)
+                    found_prev_match = False
+                    track_id = None
+                    for id, tracklet in self.tracks.items():
+                        if tracklet.match_bbox(frame_id, cur_bboxes[j]):
+                            self.tracks[id].insert_new_observation(
+                                frame_id, cur_bboxes[j], cost_matrix[i, j]
+                            )
+                            found_prev_match = True
+                            track_id = id
+                            break
+                    
+                    if not found_prev_match:
+                        track_id = self.create_new_tracklet(frame_id, cur_bboxes[j], 0)
                 cur_frame_track_ids.append(track_id)
+
+        # for id, tracklet in self.tracks.items():
+        #     print(id)
+        #     print(tracklet.frame_ids)
+        #     print(tracklet.bboxes_traj)
+        #     print(tracklet.velocities)
