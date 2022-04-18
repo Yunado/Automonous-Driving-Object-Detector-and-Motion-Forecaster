@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from tracking.cost import iou_2d
+from tracking.cost import iou_2d, c_shp, c_dist
 from tracking.matching import greedy_matching, hungarian_matching
 from tracking.types import ActorID, AssociateMethod, SingleTracklet
 
@@ -56,10 +56,15 @@ class Tracker:
             cost_matrix: cost matrix of shape [M, N]
         """
         # TODO: Replace this stub code by making use of iou_2d
-        M, N = bboxes1.shape[0], bboxes2.shape[0]
-        cost_matrix = torch.ones((M, N))
-        iou_matrix = iou_2d(bboxes1.numpy(), bboxes2.numpy())
-        cost_matrix = cost_matrix - iou_matrix
+        # M, N = bboxes1.shape[0], bboxes2.shape[0]
+        # cost_matrix = torch.ones((M, N))
+        # iou_matrix = iou_2d(bboxes1.numpy(), bboxes2.numpy())
+        # cost_matrix = cost_matrix - iou_matrix
+        # return cost_matrix
+        
+        dist = c_dist(bboxes1.numpy(), bboxes2.numpy())
+        shp = c_shp(bboxes1.numpy(), bboxes2.numpy())
+        cost_matrix = np.multiply(dist, shp)
         return cost_matrix
 
     def associate_greedy(
