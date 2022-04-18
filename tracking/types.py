@@ -13,6 +13,7 @@ class AssociateMethod(str, Enum):
     GREEDY = "greedy"
     HUNGARIAN = "hungarian"
     MOTION = "motion"
+    GEOMETRIC = "geometric"
 
 
 ActorID = Union[int, str, UUID]

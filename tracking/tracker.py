@@ -56,15 +56,10 @@ class Tracker:
             cost_matrix: cost matrix of shape [M, N]
         """
         # TODO: Replace this stub code by making use of iou_2d
-        # M, N = bboxes1.shape[0], bboxes2.shape[0]
-        # cost_matrix = torch.ones((M, N))
-        # iou_matrix = iou_2d(bboxes1.numpy(), bboxes2.numpy())
-        # cost_matrix = cost_matrix - iou_matrix
-        # return cost_matrix
-        
-        dist = c_dist(bboxes1.numpy(), bboxes2.numpy())
-        shp = c_shp(bboxes1.numpy(), bboxes2.numpy())
-        cost_matrix = np.multiply(dist, shp)
+        M, N = bboxes1.shape[0], bboxes2.shape[0]
+        cost_matrix = torch.ones((M, N))
+        iou_matrix = iou_2d(bboxes1.numpy(), bboxes2.numpy())
+        cost_matrix = cost_matrix - iou_matrix
         return cost_matrix
 
     def associate_greedy(
@@ -106,6 +101,23 @@ class Tracker:
         M, N = bboxes1.shape[0], bboxes2.shape[0]
         cost_matrix = self.cost_matrix(bboxes1, bboxes2)
         row_ids, col_ids = hungarian_matching(cost_matrix.numpy())
+        assign_matrix = torch.zeros((M, N))
+        assign_matrix[row_ids, col_ids] = 1
+
+        return assign_matrix, cost_matrix
+
+    def associate_geometric(
+        self, bboxes1: Tensor, bboxes2: Tensor
+    ) -> Tuple[Tensor, Tensor]:
+        """
+        Match based on geometry distance
+        """
+        M, N = bboxes1.shape[0], bboxes2.shape[0]
+        dist = c_dist(bboxes1.numpy(), bboxes2.numpy())
+        shp = c_shp(bboxes1.numpy(), bboxes2.numpy())
+        cost_matrix = np.multiply(dist, shp)
+        row_ids, col_ids = hungarian_matching(cost_matrix)
+        cost_matrix = torch.from_numpy(cost_matrix)
         assign_matrix = torch.zeros((M, N))
         assign_matrix[row_ids, col_ids] = 1
 
@@ -152,6 +164,8 @@ class Tracker:
             assign_matrix, cost_matrix = self.associate_hungarian(bboxes1, bboxes2)
         elif self.associate_method == AssociateMethod.MOTION and prev_tracklets is not None:
             assign_matrix, cost_matrix = self.associate_motion(bboxes1, bboxes2, prev_tracklets)
+        elif self.associate_method == AssociateMethod.GEOMETRIC:
+            assign_matrix, cost_matrix = self.associate_geometric(bboxes1, bboxes2)
         else:
             raise ValueError(f"Unknown association method {self.associate_method}")
 
