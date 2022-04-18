@@ -105,9 +105,27 @@ class Tracker:
         assign_matrix[row_ids, col_ids] = 1
 
         return assign_matrix, cost_matrix
+    
+    def associate_motion(
+        self, bboxes1: Tensor, bboxes2: Tensor, tracklets
+    ) -> Tuple[Tensor, Tensor]:
+        """
+        Match based on motion and velocity 
+        """
+        M, N = bboxes1.shape[0], bboxes2.shape[0]
+        tracklet_tensor = torch.cat([self.tracks[x].bboxes_traj[-1].unsqueeze(0) for x in tracklets])
+        velocities_tensor = torch.cat([self.tracks[x].velocities[-1].unsqueeze(0) for x in tracklets])
+        velocities_tensor = torch.cat([velocities_tensor, torch.zeros(M, 3)], dim=-1)
+        tracklet_tensor = tracklet_tensor + velocities_tensor
+        cost_matrix = self.cost_matrix(tracklet_tensor, bboxes2)
+        row_ids, col_ids = hungarian_matching(cost_matrix.numpy())
+        assign_matrix = torch.zeros((M, N))
+        assign_matrix[row_ids, col_ids] = 1
+
+        return assign_matrix, cost_matrix
 
     def track_consecutive_frame(
-        self, bboxes1: Tensor, bboxes2: Tensor
+        self, bboxes1: Tensor, bboxes2: Tensor, prev_tracklets = None
     ) -> Tuple[Tensor, Tensor]:
         """This function tracks the bboxes2 in the current frame against bboxes1 in the previous frame,
         by associating bboxes1 and bboxes2 with associate_method, and filtering out the associations with
@@ -127,6 +145,8 @@ class Tracker:
             assign_matrix, cost_matrix = self.associate_greedy(bboxes1, bboxes2)
         elif self.associate_method == AssociateMethod.HUNGARIAN:
             assign_matrix, cost_matrix = self.associate_hungarian(bboxes1, bboxes2)
+        elif self.associate_method == AssociateMethod.MOTION and prev_tracklets is not None:
+            assign_matrix, cost_matrix = self.associate_motion(bboxes1, bboxes2, prev_tracklets)
         else:
             raise ValueError(f"Unknown association method {self.associate_method}")
 
@@ -161,7 +181,7 @@ class Tracker:
                 prev_bboxes = prev_bboxes[scores_seq[frame_id - 1] >= self.min_score]
                 cur_bboxes = cur_bboxes[scores_seq[frame_id] >= self.min_score]
             assign_matrix, cost_matrix = self.track_consecutive_frame(
-                prev_bboxes, cur_bboxes
+                prev_bboxes, cur_bboxes, cur_frame_track_ids
             )
             prev_frame_track_ids = deepcopy(cur_frame_track_ids)
             cur_frame_track_ids = []

@@ -12,6 +12,7 @@ from detection.types import Detections
 class AssociateMethod(str, Enum):
     GREEDY = "greedy"
     HUNGARIAN = "hungarian"
+    MOTION = "motion"
 
 
 ActorID = Union[int, str, UUID]
@@ -32,7 +33,7 @@ class SingleTracklet:
         self.frame_ids = frame_ids
         self.bboxes_traj = bboxes_traj
         self.scores = scores
-        self.velocities = []
+        self.velocities = [torch.tensor([0, 0])]
 
     @property
     def num_steps(self):
@@ -43,6 +44,7 @@ class SingleTracklet:
         self.bboxes_traj: List[torch.Tensor] = []
         self.scores: List[float] = []
         self.scores: List[List[torch.Tensor]] = []
+        self.velocities = []
 
     def insert_new_observation(
         self, new_frame_id: int, new_bbox: torch.Tensor, new_score: float
@@ -57,7 +59,10 @@ class SingleTracklet:
         prev_box = self.bboxes_traj[-2]
         traj = (curr_box - prev_box)[:2]
         time = self.frame_ids[-1] - self.frame_ids[-2]
-        traj = traj / time
+        if time == 0:
+            traj = torch.tensor([0, 0]).float()
+        else:
+            traj = traj / time
         traj = torch.where(torch.abs(traj) > 1, traj, torch.tensor([0]).float())
         return traj
     
