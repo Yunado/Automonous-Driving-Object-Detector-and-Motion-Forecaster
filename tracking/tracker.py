@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 import torch
 from torch import Tensor
+from tracking.config import USE_OCCLUSION
 
 from tracking.cost import iou_2d, c_shp, c_dist
 from tracking.matching import greedy_matching, hungarian_matching
@@ -216,18 +217,21 @@ class Tracker:
                     )
                     
                 else:
-                    found_prev_match = False
-                    track_id = None
-                    for id, tracklet in self.tracks.items():
-                        if tracklet.match_bbox(frame_id, cur_bboxes[j]):
-                            self.tracks[id].insert_new_observation(
-                                frame_id, cur_bboxes[j], cost_matrix[i, j]
-                            )
-                            found_prev_match = True
-                            track_id = id
-                            break
-                    
-                    if not found_prev_match:
+                    if USE_OCCLUSION:
+                        found_prev_match = False
+                        track_id = None
+                        for id, tracklet in self.tracks.items():
+                            if tracklet.match_bbox(frame_id, cur_bboxes[j]):
+                                self.tracks[id].insert_new_observation(
+                                    frame_id, cur_bboxes[j], cost_matrix[i, j]
+                                )
+                                found_prev_match = True
+                                track_id = id
+                                break
+                        
+                        if not found_prev_match:
+                            track_id = self.create_new_tracklet(frame_id, cur_bboxes[j], 0)
+                    else:
                         track_id = self.create_new_tracklet(frame_id, cur_bboxes[j], 0)
                 cur_frame_track_ids.append(track_id)
 
